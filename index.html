@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1a1816" />
+<meta name="description" content="A personal repo for Claude-powered tools I want to build." />
+<title>The Tools Repo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --paper: #f5f1e8;
+    --paper-warm: #efe9dc;
+    --ink: #1a1816;
+    --ink-soft: #2d2924;
+    --muted: #6b655c;
+    --muted-light: #9a938a;
+    --rule: #d9d1bf;
+    --rule-soft: #e6dfcc;
+    --accent: #b8442e;
+    --accent-soft: #e8b9a8;
+
+    --status-idea: #9a938a;
+    --status-spec: #a8732a;
+    --status-building: #3d5c7a;
+    --status-shipped: #4a6b4f;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Subtle paper grain */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    pointer-events: none;
+    opacity: 0.6;
+    z-index: 0;
+    mix-blend-mode: multiply;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  /* Typography */
+  .serif { font-family: "Fraunces", Georgia, serif; font-optical-sizing: auto; }
+  .mono { font-family: "Geist Mono", ui-monospace, monospace; }
+  .caps { text-transform: uppercase; letter-spacing: 0.12em; }
+
+  input, textarea, select, button {
+    font-family: inherit;
+    font-size: 16px; /* prevent iOS zoom */
+    color: inherit;
+  }
+
+  button { background: none; border: none; padding: 0; cursor: pointer; color: inherit; }
+
+  /* Header */
+  .masthead {
+    padding: calc(var(--safe-top) + 1.5rem) 1.25rem 0;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+  }
+  .wordmark {
+    font-family: "Fraunces", Georgia, serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 500;
+    font-size: 2rem;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    font-style: italic;
+  }
+  .wordmark em {
+    font-style: normal;
+    font-weight: 400;
+  }
+  .masthead-meta {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: right;
+  }
+  .masthead-counts {
+    margin-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-family: "Geist Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .masthead-counts span + span::before {
+    content: "·";
+    margin: 0 0.5rem;
+    color: var(--muted-light);
+  }
+
+  /* Filter strip */
+  .filters {
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .filter-row {
+    display: flex;
+    gap: 1.25rem;
+    padding: 0.75rem 1.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-row + .filter-row {
+    border-top: 1px dashed var(--rule-soft);
+  }
+  .filter-btn {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    padding: 0.25rem 0;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .filter-btn[data-active="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Cards list */
+  .list { padding: 0 0 8rem; }
+
+  .card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 1.25rem 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .card:active { background: var(--paper-warm); }
+
+  .card-top {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+  .card-index {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--muted-light);
+    letter-spacing: 0.05em;
+  }
+  .card-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 500;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .card-status {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.15rem 0;
+  }
+  .card-body {
+    padding-left: 3rem;
+    margin-top: 0.4rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-foot {
+    padding-left: 3rem;
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.75rem;
+    font-family: "Geist Mono", monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted-light);
+  }
+  .card-foot .dot {
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+    background: var(--accent);
+  }
+
+  /* Empty state */
+  .empty {
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+  .empty-glyph {
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-size: 3rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+  .empty-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.2rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+  .empty-sub {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    right: 1.25rem;
+    bottom: calc(var(--safe-bottom) + 1.25rem);
+    width: 3.5rem;
+    height: 3.5rem;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.75rem;
+    line-height: 1;
+    border-radius: 2px;
+    box-shadow: 0 8px 24px rgba(26, 24, 22, 0.2), 0 2px 6px rgba(26, 24, 22, 0.15);
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    transition: transform 0.15s;
+  }
+  .fab:active { transform: scale(0.95); }
+
+  /* Editor */
+  .editor {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--paper);
+  }
+  .editor-nav {
+    padding: calc(var(--safe-top) + 1rem) 1.25rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+    z-index: 10;
+  }
+  .nav-btn {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    padding: 0.5rem 0;
+  }
+  .nav-btn.primary { color: var(--ink); }
+  .nav-btn.danger { color: var(--accent); }
+  .nav-right { display: flex; gap: 1.25rem; }
+
+  .editor-form {
+    padding: 1.5rem 1.25rem 10rem;
+  }
+  .field {
+    margin-bottom: 1.5rem;
+  }
+  .field-label {
+    display: block;
+    font-family: "Geist Mono", monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .input, .textarea, .select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 0.5rem 0;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+    border-radius: 0;
+  }
+  .input:focus, .textarea:focus, .select:focus {
+    border-bottom-color: var(--ink);
+  }
+  .input-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    padding: 0.25rem 0 0.5rem;
+  }
+  .textarea {
+    resize: vertical;
+    min-height: 4rem;
+    line-height: 1.5;
+    font-family: inherit;
+  }
+  .select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236b655c' stroke-width='1' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    padding-right: 1.5rem;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .save-btn {
+    position: fixed;
+    left: 1.25rem;
+    right: 1.25rem;
+    bottom: calc(var(--safe-bottom) + 1.25rem);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1rem;
+    font-family: "Geist Mono", monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    border-radius: 2px;
+    transition: transform 0.15s;
+    z-index: 15;
+  }
+  .save-btn:active { transform: translateY(1px); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 1.25rem;
+    right: 1.25rem;
+    top: calc(var(--safe-top) + 1rem);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.75rem 1rem;
+    font-family: "Geist Mono", monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 2px;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(26, 24, 22, 0.25);
+    animation: slide-down 0.25s ease-out;
+  }
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-0.5rem); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Intro section */
+  .intro {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .intro::before {
+    content: "◈";
+    color: var(--accent);
+    margin-right: 0.5rem;
+    font-style: normal;
+  }
+
+  /* Wider screens: center and cap width */
+  @media (min-width: 640px) {
+    body { background: #eae3d3; }
+    #app {
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--paper);
+      min-height: 100vh;
+      box-shadow: 0 0 40px rgba(26, 24, 22, 0.08);
+    }
+    .masthead, .filters, .editor-nav { max-width: 520px; }
+    .save-btn, .fab { left: auto; }
+    .fab { right: calc(50vw - 260px + 1.25rem); }
+    .save-btn {
+      right: calc(50vw - 260px + 1.25rem);
+      left: calc(50vw - 260px + 1.25rem);
+      max-width: 480px;
+    }
+    .toast { left: calc(50vw - 240px); right: calc(50vw - 240px); max-width: 480px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   Claude Tools Repo - single-file app
+   Vanilla JS + localStorage. No build step.
+   ============================================================ */
+
+const STORAGE_KEY = "claude-tools-repo-v1";
+const SEED_KEY = "claude-tools-seeded-v1";
+
+const STATUSES = [
+  { id: "idea",     label: "Idea",     color: "var(--status-idea)" },
+  { id: "spec",     label: "Spec",     color: "var(--status-spec)" },
+  { id: "building", label: "Building", color: "var(--status-building)" },
+  { id: "shipped",  label: "Shipped",  color: "var(--status-shipped)" }
+];
+
+const CATEGORIES = [
+  { id: "thesis-testing", label: "Thesis testing" },
+  { id: "diligence",      label: "Diligence" },
+  { id: "outreach",       label: "Outreach" },
+  { id: "resume",         label: "Resume" },
+  { id: "personal",       label: "Personal" },
+  { id: "other",          label: "Other" }
+];
+
+const EFFORTS = [
+  { id: "S", label: "S: a few hours" },
+  { id: "M", label: "M: a weekend" },
+  { id: "L", label: "L: multiple weekends" }
+];
+
+let state = {
+  ideas: [],
+  filter: { status: "all", category: "all" },
+  editing: null // id | 'new' | null
+};
+
+/* ---------- Storage ---------- */
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.ideas = JSON.parse(raw);
+  } catch (e) {
+    console.warn("Failed to load state:", e);
+    state.ideas = [];
+  }
+
+  // Seed one meta-idea on first run so the empty state isn't totally blank.
+  if (!localStorage.getItem(SEED_KEY) && state.ideas.length === 0) {
+    state.ideas.push({
+      id: uid(),
+      title: "The Tools Repo (this app)",
+      status: "building",
+      category: "personal",
+      problem: "I lose Claude-tool ideas in my notes app. I need somewhere to capture them on my phone and develop them into real briefs.",
+      users: "Me, from my phone",
+      mvp: "Single HTML file, localStorage, mobile-first. Add, edit, filter, and export ideas as markdown briefs I can paste into Claude Code.",
+      capabilities: "None for v1. Future: optional Claude API integration for in-app spec refinement.",
+      effort: "S",
+      notes: "First tool in the repo. Meta by design. Delete this once I have 3+ real ideas captured.",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    saveState();
+    localStorage.setItem(SEED_KEY, "1");
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.ideas));
+}
+
+function uid() {
+  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "id-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function newIdea() {
+  const now = new Date().toISOString();
+  return {
+    id: uid(),
+    title: "",
+    status: "idea",
+    category: "other",
+    problem: "",
+    users: "Me",
+    mvp: "",
+    capabilities: "",
+    effort: "M",
+    notes: "",
+    createdAt: now,
+    updatedAt: now
+  };
+}
+
+/* ---------- Render ---------- */
+
+function render() {
+  const app = document.getElementById("app");
+  if (state.editing) {
+    app.innerHTML = renderEditor();
+  } else {
+    app.innerHTML = renderList();
+  }
+  window.scrollTo(0, 0);
+}
+
+function renderList() {
+  const filtered = state.ideas.filter(i => {
+    if (state.filter.status !== "all" && i.status !== state.filter.status) return false;
+    if (state.filter.category !== "all" && i.category !== state.filter.category) return false;
+    return true;
+  });
+
+  const counts = STATUSES.map(s => ({
+    label: s.label.toLowerCase(),
+    n: state.ideas.filter(i => i.status === s.id).length
+  })).filter(c => c.n > 0);
+
+  const countStr = counts.length
+    ? counts.map(c => `<span>${c.n} ${c.label}</span>`).join("")
+    : `<span>empty</span>`;
+
+  return `
+    <header class="masthead">
+      <div class="masthead-top">
+        <div class="wordmark">the <em>tools</em> repo</div>
+        <div class="masthead-meta">
+          <div>vol. 01</div>
+          <div>${state.ideas.length} total</div>
+        </div>
+      </div>
+      <div class="masthead-counts">${countStr}</div>
+    </header>
+
+    <div class="filters">
+      <div class="filter-row">
+        ${filterBtn("status", "all", "All")}
+        ${STATUSES.map(s => filterBtn("status", s.id, s.label)).join("")}
+      </div>
+      <div class="filter-row">
+        ${filterBtn("category", "all", "All categories")}
+        ${CATEGORIES.map(c => filterBtn("category", c.id, c.label)).join("")}
+      </div>
+    </div>
+
+    ${state.ideas.length === 0 ? renderIntro() : ""}
+
+    <main class="list">
+      ${filtered.length === 0
+        ? renderEmpty(state.ideas.length === 0)
+        : filtered.map((idea, i) => renderCard(idea, i + 1)).join("")
+      }
+    </main>
+
+    <button class="fab" onclick="openEditor('new')" aria-label="Add idea">+</button>
+
+    <div style="padding: 2rem 1.25rem calc(var(--safe-bottom) + 1rem); text-align: center;">
+      <button onclick="exportAll()" class="filter-btn" style="margin-right: 1.5rem;">Export JSON</button>
+      <button onclick="importJSON()" class="filter-btn">Import</button>
+    </div>
+  `;
+}
+
+function filterBtn(key, value, label) {
+  const active = state.filter[key] === value;
+  return `<button class="filter-btn" data-active="${active}" onclick="setFilter('${key}', '${value}')">${escapeHtml(label)}</button>`;
+}
+
+function renderIntro() {
+  return `
+    <div class="intro">
+      A notebook for Claude-powered tools I want to build. Capture the idea, develop the spec, export a brief, hand it to Claude Code.
+    </div>
+  `;
+}
+
+function renderCard(idea, index) {
+  const status = STATUSES.find(s => s.id === idea.status) || STATUSES[0];
+  const category = CATEGORIES.find(c => c.id === idea.category) || CATEGORIES[5];
+  const idx = String(index).padStart(2, "0");
+  return `
+    <button class="card" onclick="openEditor('${idea.id}')">
+      <div class="card-top">
+        <span class="card-index">${idx}</span>
+        <span class="card-title">${escapeHtml(idea.title || "Untitled")}</span>
+        <span class="card-status" style="color: ${status.color}">${status.label}</span>
+      </div>
+      ${idea.problem ? `<p class="card-body">${escapeHtml(idea.problem)}</p>` : ""}
+      <div class="card-foot">
+        <span><span class="dot" style="background: ${status.color}"></span>${escapeHtml(category.label)}</span>
+        <span>Effort ${escapeHtml(idea.effort)}</span>
+      </div>
+    </button>
+  `;
+}
+
+function renderEmpty(isCompletelyEmpty) {
+  return `
+    <div class="empty">
+      <div class="empty-glyph">${isCompletelyEmpty ? "✦" : "◌"}</div>
+      <div class="empty-title">${isCompletelyEmpty ? "Nothing yet" : "Nothing matches"}</div>
+      <div class="empty-sub">${isCompletelyEmpty ? "Tap + to add your first idea" : "Adjust the filters above"}</div>
+    </div>
+  `;
+}
+
+function renderEditor() {
+  const isNew = state.editing === "new";
+  const idea = isNew ? newIdea() : state.ideas.find(i => i.id === state.editing);
+  if (!idea) { state.editing = null; return renderList(); }
+
+  return `
+    <div class="editor">
+      <nav class="editor-nav">
+        <button class="nav-btn" onclick="closeEditor()">← Back</button>
+        <div class="nav-right">
+          ${!isNew ? `<button class="nav-btn primary" onclick="copyBrief('${idea.id}')">Copy brief</button>` : ""}
+          ${!isNew ? `<button class="nav-btn danger" onclick="deleteIdea('${idea.id}')">Delete</button>` : ""}
+        </div>
+      </nav>
+
+      <form class="editor-form" id="editor-form" onsubmit="return false;">
+        <div class="field">
+          <label class="field-label">Title</label>
+          <input class="input input-title" name="title" value="${escapeAttr(idea.title)}" placeholder="What is this tool?" autofocus />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Status</label>
+            <select class="select" name="status">
+              ${STATUSES.map(s => `<option value="${s.id}" ${idea.status === s.id ? "selected" : ""}>${s.label}</option>`).join("")}
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Category</label>
+            <select class="select" name="category">
+              ${CATEGORIES.map(c => `<option value="${c.id}" ${idea.category === c.id ? "selected" : ""}>${c.label}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Problem</label>
+          <textarea class="textarea" name="problem" rows="3" placeholder="What pain does this address? Be specific.">${escapeHtml(idea.problem)}</textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Users</label>
+          <input class="input" name="users" value="${escapeAttr(idea.users)}" placeholder="Me, PMs, early-stage founders..." />
+        </div>
+
+        <div class="field">
+          <label class="field-label">MVP scope</label>
+          <textarea class="textarea" name="mvp" rows="4" placeholder="What does v1 do? Constrain aggressively.">${escapeHtml(idea.mvp)}</textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Claude capabilities needed</label>
+          <textarea class="textarea" name="capabilities" rows="2" placeholder="Agents, tools, web search, structured output, MCP...">${escapeHtml(idea.capabilities)}</textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Effort</label>
+          <select class="select" name="effort">
+            ${EFFORTS.map(e => `<option value="${e.id}" ${idea.effort === e.id ? "selected" : ""}>${e.label}</option>`).join("")}
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Notes</label>
+          <textarea class="textarea" name="notes" rows="4" placeholder="References, open questions, inspirations">${escapeHtml(idea.notes)}</textarea>
+        </div>
+      </form>
+
+      <button class="save-btn" onclick="saveIdea('${idea.id}', ${isNew})">
+        ${isNew ? "Save idea" : "Save changes"}
+      </button>
+    </div>
+  `;
+}
+
+/* ---------- Actions ---------- */
+
+function setFilter(key, value) {
+  state.filter[key] = value;
+  render();
+}
+
+function openEditor(id) {
+  state.editing = id;
+  render();
+}
+
+function closeEditor() {
+  state.editing = null;
+  render();
+}
+
+function saveIdea(id, isNew) {
+  const form = document.getElementById("editor-form");
+  if (!form) return;
+  const data = Object.fromEntries(new FormData(form));
+
+  if (!data.title || !data.title.trim()) {
+    toast("Give it a title first");
+    return;
+  }
+
+  if (isNew) {
+    const idea = { ...newIdea(), ...data, id };
+    state.ideas.unshift(idea);
+  } else {
+    const existing = state.ideas.find(i => i.id === id);
+    if (existing) Object.assign(existing, data, { updatedAt: new Date().toISOString() });
+  }
+  saveState();
+  state.editing = null;
+  render();
+  toast(isNew ? "Saved" : "Updated");
+}
+
+function deleteIdea(id) {
+  if (!confirm("Delete this idea? This cannot be undone.")) return;
+  state.ideas = state.ideas.filter(i => i.id !== id);
+  saveState();
+  state.editing = null;
+  render();
+  toast("Deleted");
+}
+
+function copyBrief(id) {
+  const idea = state.ideas.find(i => i.id === id);
+  if (!idea) return;
+  const brief = buildBrief(idea);
+  copyToClipboard(brief, `${idea.ideas ? idea.ideas.length : 1} brief copied`);
+  toast("Brief copied");
+}
+
+function buildBrief(idea) {
+  const cat = CATEGORIES.find(c => c.id === idea.category)?.label || idea.category;
+  const eff = EFFORTS.find(e => e.id === idea.effort)?.label || idea.effort;
+  return `# ${idea.title}
+
+**Category:** ${cat}
+**Status:** ${idea.status}
+**Effort:** ${eff}
+
+## Problem
+${idea.problem || "(not yet specified)"}
+
+## Users
+${idea.users || "Me"}
+
+## MVP scope
+${idea.mvp || "(not yet specified)"}
+
+## Claude capabilities needed
+${idea.capabilities || "(not yet specified)"}
+
+## Notes
+${idea.notes || "(none)"}
+
+---
+
+Build this as a simple, mobile-friendly tool. No live data integrations unless I explicitly ask. Follow the writing rules in CLAUDE.md. Ship v1 before optimizing.
+`;
+}
+
+function exportAll() {
+  if (state.ideas.length === 0) {
+    toast("Nothing to export");
+    return;
+  }
+  const json = JSON.stringify(state.ideas, null, 2);
+  copyToClipboard(json, `${state.ideas.length} ideas copied`);
+  toast(`${state.ideas.length} ideas copied`);
+}
+
+function importJSON() {
+  const input = prompt("Paste exported JSON:");
+  if (!input) return;
+  try {
+    const parsed = JSON.parse(input);
+    if (!Array.isArray(parsed)) throw new Error("Not an array");
+    if (!confirm(`Import ${parsed.length} ideas? This will replace current data.`)) return;
+    state.ideas = parsed;
+    saveState();
+    render();
+    toast(`Imported ${parsed.length}`);
+  } catch (e) {
+    alert("Could not parse. Make sure you pasted valid JSON.");
+  }
+}
+
+function copyToClipboard(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* ---------- UI helpers ---------- */
+
+let toastTimer;
+function toast(msg) {
+  document.querySelectorAll(".toast").forEach(n => n.remove());
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.remove(), 1800);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+/* ---------- Init ---------- */
+
+loadState();
+render();
+
+// Expose for inline handlers
+window.setFilter = setFilter;
+window.openEditor = openEditor;
+window.closeEditor = closeEditor;
+window.saveIdea = saveIdea;
+window.deleteIdea = deleteIdea;
+window.copyBrief = copyBrief;
+window.exportAll = exportAll;
+window.importJSON = importJSON;
+</script>
+</body>
+</html>

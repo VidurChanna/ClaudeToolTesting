@@ -1,0 +1,63 @@
+{
+  "rubric_description": "Six rules for a strong resume bullet. A bullet passes if it leads with impact, quantifies both what was done and the result, avoids banned filler words, and reads concisely.",
+  "rules": [
+    {
+      "id": "leads_with_impact",
+      "description": "Bullet starts with a strong action verb or a result, not a duty or responsibility phrase.",
+      "fail_examples": ["Responsible for", "Helped with", "Worked on", "Assisted in", "Part of a team that"]
+    },
+    {
+      "id": "has_input_metric",
+      "description": "Bullet includes a number or scale that describes the effort, scope, or input (e.g. team size, budget, number of accounts, time period).",
+      "examples": ["across 12 accounts", "$4M budget", "team of 8", "6-month engagement"]
+    },
+    {
+      "id": "has_output_metric",
+      "description": "Bullet includes a number or percentage that describes the result or outcome (e.g. revenue, cost savings, time saved, improvement percentage).",
+      "examples": ["saving $200K", "20% faster", "3x growth", "+15 NPS points"]
+    },
+    {
+      "id": "no_em_dash",
+      "description": "Bullet does not contain an em dash character (—). Use a colon, period, or parentheses instead.",
+      "banned_characters": ["—"]
+    },
+    {
+      "id": "no_banned_words",
+      "description": "Bullet does not contain any banned filler words or phrases from the banned_words list.",
+      "note": "Case-insensitive match. Partial matches count (e.g. 'optimizing' matches 'optimiz')."
+    },
+    {
+      "id": "under_two_lines",
+      "description": "Bullet is 200 characters or fewer. Longer bullets lose a reader's attention before the payoff.",
+      "max_characters": 200
+    }
+  ],
+  "banned_words": [
+    "optimize",
+    "optimiz",
+    "leverage",
+    "leverag",
+    "synergy",
+    "synergies",
+    "customer-centric",
+    "thought leader",
+    "thought leadership",
+    "best-in-class",
+    "value-add",
+    "cutting-edge",
+    "innovative",
+    "innovation",
+    "passionate",
+    "results-driven",
+    "detail-oriented",
+    "self-starter",
+    "proactive",
+    "dynamic",
+    "strategic thinker",
+    "go-getter",
+    "team player",
+    "hard worker",
+    "at the intersection of",
+    "opportunity to"
+  ]
+}
